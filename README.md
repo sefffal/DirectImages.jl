@@ -1,14 +1,18 @@
 # SpaceImages
 
-Built on top of FITSIO and the Images ecosystem, this package aims to provide
+This is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
+common in astronomy. 
+
+Built on top of FITSIO and the Images ecosystem, this package also bundles
 convenient tools for loading and manipulating astronomical images and datacubes.
 
-Suppots:
+
+# Featuers
  - reading and writing FITS cubes
  - read and set FITS comments
  - keeping track of physical coordinates
 
------- Core ^^ --------
+# Roadmap
 
  - image registration
  - photometry
@@ -18,12 +22,7 @@ Suppots:
  - contrast measurements for High Contrast Imaging
  - image masking: circles, annuli, etc.
 
- - Interface with JS9?
-
-Can be combined with other packages to:
- - show images in a popup window, in VS Code, notebooks, or your terminal (ImageView, ImagesInTerminal)
- - overplot graphics for labelling features (Luxor?)
- - overplot lines etc. (Plots)
+ - Interface with DS9 & JS9
 
 
 ## Example
@@ -41,7 +40,5 @@ img[:DATE_OBS,/] = "The date the observations were taken"
 # Use offset indices to keep track of image positions
 img[-10,10] == 1.2
 
-# Use physical indices
-img[-10kpc:10kpc] == 2.0
 
 ```
