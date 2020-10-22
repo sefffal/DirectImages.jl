@@ -1,4 +1,4 @@
-# FITSImages
+# SpaceImages
 
 Built on top of FITSIO and the Images ecosystem, this package aims to provide
 convenient tools for loading and manipulating astronomical images and datacubes.
@@ -31,7 +31,7 @@ Can be combined with other packages to:
 ```julia
 
 # Load an image
-img = FITSImage("M32.fits.gz")
+img = Spimage("M32.fits.gz")
 
 # Inspect or set headers
 img.DATE_OBS = "2020-01-01"

@@ -1,4 +1,4 @@
-module FITSImages
+module SpaceImages
 
 include("Type.jl")
 include("IO.jl")

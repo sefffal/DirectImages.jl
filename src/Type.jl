@@ -15,7 +15,7 @@ const ViewIndex = Union{Base.ViewIndex, Colon}
 
 export
     # types
-    FITSImage,
+    Spimage,
 
     # functions
     copyheaders,
@@ -48,11 +48,11 @@ end
 
 # Concrete types
 """
-`FITSImage` is an AbstractArray that can have metadata, stored in a dictionary.
-Construct an image with `FITSImage(A, props)` (for a headers dictionary
-`props`), or with `FITSImage(A, prop1=val1, prop2=val2, ...)`.
+`Spimage` is an AbstractArray that can have metadata, stored in a dictionary.
+Construct an image with `Spimage(A, props)` (for a headers dictionary
+`props`), or with `Spimage(A, prop1=val1, prop2=val2, ...)`.
 """
-struct FITSImage{T,N,A<:AbstractArray} <: AbstractArray{T,N}
+struct Spimage{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     data::A
     headers::OrderedDict{Symbol,Any}
 end
@@ -60,34 +60,34 @@ end
 # TODO: friendly constructors
 
 
-function FITSImage(data::AbstractArray{T,N}) where {T,N}
-    return FITSImage{T,N,typeof(data)}(data, OrderedDict{Symbol,Any}())
+function Spimage(data::AbstractArray{T,N}) where {T,N}
+    return Spimage{T,N,typeof(data)}(data, OrderedDict{Symbol,Any}())
 end
 
-function FITSImage(data::AbstractArray{T,N}, axes::AbstractRange...) where {T,N}
+function Spimage(data::AbstractArray{T,N}, axes::AbstractRange...) where {T,N}
     data_offset = OffsetArray(data, axes...)
-    return FITSImage{T,N,typeof(data_offset)}(data_offset, OrderedDict{Symbol,Any}())
+    return Spimage{T,N,typeof(data_offset)}(data_offset, OrderedDict{Symbol,Any}())
 end
 
 
-const FITSImageArray{T,N,A<:Array} = FITSImage{T,N,A}
-const FITSImageAxis{T,N,A<:AxisArray} = FITSImage{T,N,A}
+const SpaceImageArray{T,N,A<:Array} = Spimage{T,N,A}
+const SpaceImageAxis{T,N,A<:AxisArray} = Spimage{T,N,A}
 
-Base.size(A::FITSImage) = size(arraydata(A))
-Base.size(A::FITSImageAxis, Ax::Axis) = size(arraydata(A), Ax)
-Base.size(A::FITSImageAxis, ::Type{Ax}) where {Ax<:Axis} = size(arraydata(A), Ax)
-Base.axes(A::FITSImage) = axes(arraydata(A))
-Base.axes(A::FITSImageAxis, Ax::Axis) = axes(arraydata(A), Ax)
-Base.axes(A::FITSImageAxis, ::Type{Ax}) where {Ax<:Axis} = axes(arraydata(A), Ax)
+Base.size(A::Spimage) = size(arraydata(A))
+Base.size(A::SpaceImageAxis, Ax::Axis) = size(arraydata(A), Ax)
+Base.size(A::SpaceImageAxis, ::Type{Ax}) where {Ax<:Axis} = size(arraydata(A), Ax)
+Base.axes(A::Spimage) = axes(arraydata(A))
+Base.axes(A::SpaceImageAxis, Ax::Axis) = axes(arraydata(A), Ax)
+Base.axes(A::SpaceImageAxis, ::Type{Ax}) where {Ax<:Axis} = axes(arraydata(A), Ax)
 
-datatype(::Type{FITSImage{T,N,A}}) where {T,N,A<:AbstractArray} = A
+datatype(::Type{Spimage{T,N,A}}) where {T,N,A<:AbstractArray} = A
 
-Base.IndexStyle(::Type{M}) where {M<:FITSImage} = IndexStyle(datatype(M))
+Base.IndexStyle(::Type{M}) where {M<:Spimage} = IndexStyle(datatype(M))
 
-AxisArrays.HasAxes(A::FITSImageAxis) = AxisArrays.HasAxes{true}()
+AxisArrays.HasAxes(A::SpaceImageAxis) = AxisArrays.HasAxes{true}()
 
 # getindex and setindex!
-for AType in (FITSImage, FITSImageAxis)
+for AType in (Spimage, SpaceImageAxis)
     @eval begin
         @inline function Base.getindex(img::$AType{T,1}, i::Int) where T
             @boundscheck checkbounds(arraydata(img), i)
@@ -123,49 +123,49 @@ for AType in (FITSImage, FITSImageAxis)
     end
 end
 
-@inline function Base.getindex(img::FITSImageAxis, ax::Axis, I...)
+@inline function Base.getindex(img::SpaceImageAxis, ax::Axis, I...)
     result = arraydata(img)[ax, I...]
     maybe_wrap(img, result)
 end
-@inline function Base.getindex(img::FITSImageAxis, i::Union{Integer,AbstractVector,Colon}, I...)
+@inline function Base.getindex(img::SpaceImageAxis, i::Union{Integer,AbstractVector,Colon}, I...)
     result = arraydata(img)[i, I...]
     maybe_wrap(img, result)
 end
-maybe_wrap(img::FITSImage{T}, result::T) where T = result
-maybe_wrap(img::FITSImage{T}, result::AbstractArray{T}) where T = copyheaders(img, result)
+maybe_wrap(img::Spimage{T}, result::T) where T = result
+maybe_wrap(img::Spimage{T}, result::AbstractArray{T}) where T = copyheaders(img, result)
 
 
-@inline function Base.setindex!(img::FITSImageAxis, val, ax::Axis, I...)
+@inline function Base.setindex!(img::SpaceImageAxis, val, ax::Axis, I...)
     setindex!(arraydata(img), val, ax, I...)
 end
-@inline function Base.setindex!(img::FITSImageAxis, val, i::Union{Integer,AbstractVector,Colon}, I...)
+@inline function Base.setindex!(img::SpaceImageAxis, val, i::Union{Integer,AbstractVector,Colon}, I...)
     setindex!(arraydata(img), val, i, I...)
 end
 
-Base.view(img::FITSImage, ax::Axis, I...) = shareheaders(img, view(arraydata(img), ax, I...))
-Base.view(img::FITSImage{T,N}, I::Vararg{ViewIndex,N}) where {T,N} = shareheaders(img, view(arraydata(img), I...))
-Base.view(img::FITSImage, i::ViewIndex) = shareheaders(img, view(arraydata(img), i))
-Base.view(img::FITSImage, I::Vararg{ViewIndex,N}) where {N} = shareheaders(img, view(arraydata(img), I...))
+Base.view(img::Spimage, ax::Axis, I...) = shareheaders(img, view(arraydata(img), ax, I...))
+Base.view(img::Spimage{T,N}, I::Vararg{ViewIndex,N}) where {T,N} = shareheaders(img, view(arraydata(img), I...))
+Base.view(img::Spimage, i::ViewIndex) = shareheaders(img, view(arraydata(img), i))
+Base.view(img::Spimage, I::Vararg{ViewIndex,N}) where {N} = shareheaders(img, view(arraydata(img), I...))
 
-@inline function Base.getproperty(img::FITSImage, propname::Symbol)::ValTypes
+@inline function Base.getproperty(img::Spimage, propname::Symbol)::ValTypes
     if !haskey(headers(img), propname)
         propname = Symbol(uppercase(string(propname)))
     end
     return headers(img)[propname].value
 end
-@inline function Base.getindex(img::FITSImage, propname::Union{Symbol,String})::ValTypes
+@inline function Base.getindex(img::Spimage, propname::Union{Symbol,String})::ValTypes
     if !haskey(headers(img), propname)
         propname = Symbol(uppercase(string(propname)))
     end
     return headers(img)[propname].value
 end
-@inline function Base.getindex(img::FITSImage, propname::Union{Symbol,String}, ::typeof(/))::String
+@inline function Base.getindex(img::Spimage, propname::Union{Symbol,String}, ::typeof(/))::String
     if !haskey(headers(img), propname)
         propname = Symbol(uppercase(string(propname)))
     end
     return headers(img)[propname].comment
 end
-@inline function Base.setproperty!(img::FITSImage, propname::Symbol, val)
+@inline function Base.setproperty!(img::Spimage, propname::Symbol, val)
     if !haskey(headers(img), propname)
         propname = Symbol(uppercase(string(propname)))
     end
@@ -176,7 +176,7 @@ end
     end
     return img
 end
-@inline function Base.setindex!(img::FITSImage, val, propname::Union{Symbol,String})
+@inline function Base.setindex!(img::Spimage, val, propname::Union{Symbol,String})
     if !haskey(headers(img), propname)
         propname = Symbol(uppercase(string(propname)))
     end
@@ -187,7 +187,7 @@ end
     end
     return img
 end
-@inline function Base.setindex!(img::FITSImage, comment, propname::Union{Symbol,String}, ::typeof(/))
+@inline function Base.setindex!(img::Spimage, comment, propname::Union{Symbol,String}, ::typeof(/))
     propname = Symbol(uppercase(string(propname)))
     if haskey(headers(img), propname)
         headers(img)[propname] = CommentedValue(img[propname], string(comment))
@@ -198,19 +198,19 @@ end
 end
 
 
-Base.propertynames(img::FITSImage) = (keys(headers(img))...,)
+Base.propertynames(img::Spimage) = (keys(headers(img))...,)
 
-Base.copy(img::FITSImage) = FITSImage(copy(arraydata(img)), deepcopy(headers(img)))
+Base.copy(img::Spimage) = Spimage(copy(arraydata(img)), deepcopy(headers(img)))
 
-Base.convert(::Type{FITSImage}, A::FITSImage) = A
-Base.convert(::Type{FITSImage}, A::AbstractArray) = FITSImage(A)
-Base.convert(::Type{FITSImage{T}}, A::FITSImage{T}) where {T} = A
-Base.convert(::Type{FITSImage{T}}, A::FITSImage) where {T} = shareheaders(A, convert(AbstractArray{T}, arraydata(A)))
-Base.convert(::Type{FITSImage{T}}, A::AbstractArray{T}) where {T} = FITSImage(A)
-Base.convert(::Type{FITSImage{T}}, A::AbstractArray) where {T} = FITSImage(convert(AbstractArray{T}, A))
+Base.convert(::Type{Spimage}, A::Spimage) = A
+Base.convert(::Type{Spimage}, A::AbstractArray) = Spimage(A)
+Base.convert(::Type{Spimage{T}}, A::Spimage{T}) where {T} = A
+Base.convert(::Type{Spimage{T}}, A::Spimage) where {T} = shareheaders(A, convert(AbstractArray{T}, arraydata(A)))
+Base.convert(::Type{Spimage{T}}, A::AbstractArray{T}) where {T} = Spimage(A)
+Base.convert(::Type{Spimage{T}}, A::AbstractArray) where {T} = Spimage(convert(AbstractArray{T}, A))
 
 # copy headers
-function Base.copy!(imgdest::FITSImage, imgsrc::FITSImage, prop1::Symbol, props::Symbol...)
+function Base.copy!(imgdest::Spimage, imgsrc::Spimage, prop1::Symbol, props::Symbol...)
     setproperty!(imgdest, prop1, deepcopy(getproperty(imgsrc, prop1)))
     for p in props
         setproperty!(imgdest, p, deepcopy(getproperty(imgsrc, p)))
@@ -219,82 +219,82 @@ function Base.copy!(imgdest::FITSImage, imgsrc::FITSImage, prop1::Symbol, props:
 end
 
 # similar
-Base.similar(img::FITSImage, ::Type{T}, shape::Dims) where {T} = FITSImage(similar(arraydata(img), T, shape), copy(headers(img)))
-Base.similar(img::FITSImageAxis, ::Type{T}) where {T} = FITSImage(similar(arraydata(img), T), copy(headers(img)))
+Base.similar(img::Spimage, ::Type{T}, shape::Dims) where {T} = Spimage(similar(arraydata(img), T, shape), copy(headers(img)))
+Base.similar(img::SpaceImageAxis, ::Type{T}) where {T} = Spimage(similar(arraydata(img), T), copy(headers(img)))
 
 """
-    copyheaders(img::FITSImage, data) -> imgnew
+    copyheaders(img::Spimage, data) -> imgnew
 Create a new "image," copying the headers dictionary of `img` but
 using the data of the AbstractArray `data`. Note that changing the
 headers of `imgnew` does not affect the headers of `img`.
 See also: [`shareheaders`](@ref).
 """
-copyheaders(img::FITSImage, data::AbstractArray) =
-    FITSImage(data, copy(headers(img)))
+copyheaders(img::Spimage, data::AbstractArray) =
+    Spimage(data, copy(headers(img)))
 
 """
-    shareheaders(img::FITSImage, data) -> imgnew
+    shareheaders(img::Spimage, data) -> imgnew
 Create a new "image," reusing the headers dictionary of `img` but
 using the data of the AbstractArray `data`. The two images have
 synchronized headers; modifying one also affects the other.
 See also: [`copyheaders`](@ref).
 """
-shareheaders(img::FITSImage, data::AbstractArray) = FITSImage(data, headers(img))
+shareheaders(img::Spimage, data::AbstractArray) = Spimage(data, headers(img))
 
 # Delete a property!
-Base.delete!(img::FITSImage, propname::Symbol) = delete!(headers(img), propname)
+Base.delete!(img::Spimage, propname::Symbol) = delete!(headers(img), propname)
 
 
 # Iteration
 # Defer to the array object in case it has special iteration defined
-Base.iterate(img::FITSImage) = Base.iterate(arraydata(img))
-Base.iterate(img::FITSImage, s) = Base.iterate(arraydata(img), s)
+Base.iterate(img::Spimage) = Base.iterate(arraydata(img))
+Base.iterate(img::Spimage, s) = Base.iterate(arraydata(img), s)
 
 # Show
 const emptyset = Set()
-function showim(io::IO, img::FITSImage)
+function showim(io::IO, img::Spimage)
     IT = typeof(img)
-    print(io, eltype(img).name.name, " FITSImage with:\n  data: ", summary(arraydata(img)), "\n  headers")
+    print(io, eltype(img).name.name, " Spimage with:\n  data: ", summary(arraydata(img)), "\n  headers")
     showdictlines(io, headers(img), get(img, :suppress, emptyset))
 end
-Base.show(io::IO, img::FITSImage) = showim(io, img)
-Base.show(io::IO, ::MIME"text/plain", img::FITSImage) = showim(io, img)
+Base.show(io::IO, img::Spimage) = showim(io, img)
+Base.show(io::IO, ::MIME"text/plain", img::Spimage) = showim(io, img)
 
-function Base.reinterpret(::Type{T}, img::FITSImage) where {T}
+function Base.reinterpret(::Type{T}, img::Spimage) where {T}
     shareheaders(img, reinterpret(T, arraydata(img)))
 end
 if Base.VERSION >= v"1.6.0-DEV.1083"
-    function Base.reinterpret(::typeof(reshape), ::Type{T}, img::FITSImage) where {T}
+    function Base.reinterpret(::typeof(reshape), ::Type{T}, img::Spimage) where {T}
         shareheaders(img, reinterpret(reshape, T, arraydata(img)))
     end
 end
 
 
 """
-    arraydata(img::FITSImage) -> array
+    arraydata(img::Spimage) -> array
 Extract the data from `img`, omitting the headers
 dictionary. `array` shares storage with `img`, so changes to one
 affect the other.
 See also: [`headers`](@ref).
 """
-ImageAxes.arraydata(img::FITSImage) = getfield(img, :data)
+ImageAxes.arraydata(img::Spimage) = getfield(img, :data)
 
-function Base.PermutedDimsArray(A::FITSImage, perm)
+function Base.PermutedDimsArray(A::Spimage, perm)
     ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
     permutedims_props!(copyheaders(A, PermutedDimsArray(arraydata(A), perm)), ip)
 end
-ImageCore.channelview(A::FITSImage) = shareheaders(A, channelview(arraydata(A)))
-ImageCore.rawview(A::FITSImage{T}) where {T<:Real} = shareheaders(A, rawview(arraydata(A)))
-ImageCore.normedview(::Type{T}, A::FITSImage{S}) where {T<:FixedPoint,S<:Unsigned} = shareheaders(A, normedview(T, arraydata(A)))
+ImageCore.channelview(A::Spimage) = shareheaders(A, channelview(arraydata(A)))
+ImageCore.rawview(A::Spimage{T}) where {T<:Real} = shareheaders(A, rawview(arraydata(A)))
+ImageCore.normedview(::Type{T}, A::Spimage{S}) where {T<:FixedPoint,S<:Unsigned} = shareheaders(A, normedview(T, arraydata(A)))
 
 # AxisArrays functions
-AxisArrays.axes(img::FITSImageAxis) = AxisArrays.axes(arraydata(img))
-AxisArrays.axes(img::FITSImageAxis, d::Int) = AxisArrays.axes(arraydata(img), d)
-AxisArrays.axes(img::FITSImageAxis, Ax::Axis) = AxisArrays.axes(arraydata(img), Ax)
-AxisArrays.axes(img::FITSImageAxis, ::Type{Ax}) where {Ax<:Axis} = AxisArrays.axes(arraydata(img), Ax)
-AxisArrays.axisdim(img::FITSImageAxis, ax) = axisdim(arraydata(img), ax)
-AxisArrays.axisnames(img::FITSImageAxis) = axisnames(arraydata(img))
-AxisArrays.axisvalues(img::FITSImageAxis) = axisvalues(arraydata(img))
+AxisArrays.axes(img::SpaceImageAxis) = AxisArrays.axes(arraydata(img))
+AxisArrays.axes(img::SpaceImageAxis, d::Int) = AxisArrays.axes(arraydata(img), d)
+AxisArrays.axes(img::SpaceImageAxis, Ax::Axis) = AxisArrays.axes(arraydata(img), Ax)
+AxisArrays.axes(img::SpaceImageAxis, ::Type{Ax}) where {Ax<:Axis} = AxisArrays.axes(arraydata(img), Ax)
+AxisArrays.axisdim(img::SpaceImageAxis, ax) = axisdim(arraydata(img), ax)
+AxisArrays.axisnames(img::SpaceImageAxis) = axisnames(arraydata(img))
+AxisArrays.axisvalues(img::SpaceImageAxis) = axisvalues(arraydata(img))
 
 #### Properties ####
 
@@ -304,13 +304,13 @@ Extract the headers dictionary `props` for `imgmeta`. `props`
 shares storage with `img`, so changes to one affect the other.
 See also: [`arraydata`](@ref).
 """
-headers(img::FITSImage) = getfield(img, :headers)
+headers(img::Spimage) = getfield(img, :headers)
 
 
 import Base: hasproperty
-hasproperty(img::FITSImage, k::Symbol) = haskey(headers(img), k)
+hasproperty(img::Spimage, k::Symbol) = haskey(headers(img), k)
 
-Base.get(img::FITSImage, k::Symbol, default) = get(headers(img), k, default)
+Base.get(img::Spimage, k::Symbol, default) = get(headers(img), k, default)
 
 # So that defaults don't have to be evaluated unless they are needed,
 # we also define a @get macro (thanks Toivo Hennington):
@@ -323,14 +323,14 @@ macro get(img, k, default)
     end
 end
 
-ImageAxes.timeaxis(img::FITSImageAxis) = timeaxis(arraydata(img))
-ImageAxes.timedim(img::FITSImageAxis) = timedim(arraydata(img))
+ImageAxes.timeaxis(img::SpaceImageAxis) = timeaxis(arraydata(img))
+ImageAxes.timedim(img::SpaceImageAxis) = timedim(arraydata(img))
 
-ImageCore.pixelspacing(img::FITSImage) = pixelspacing(arraydata(img))
+ImageCore.pixelspacing(img::Spimage) = pixelspacing(arraydata(img))
 
 """
     spacedirections(img)
-Using FITSImagedata, you can set this property manually. For example, you
+Using SpaceImagedata, you can set this property manually. For example, you
 could indicate that a photograph was taken with the camera tilted
 30-degree relative to vertical using
 ```
@@ -340,33 +340,33 @@ If not specified, it will be computed from `pixelspacing(img)`, placing the
 spacing along the "diagonal".  If desired, you can set this property in terms of
 physical units, and each axis can have distinct units.
 """
-ImageCore.spacedirections(img::FITSImage) = @get img :spacedirections spacedirections(arraydata(img))
+ImageCore.spacedirections(img::Spimage) = @get img :spacedirections spacedirections(arraydata(img))
 
-ImageCore.sdims(img::FITSImageAxis) = sdims(arraydata(img))
+ImageCore.sdims(img::SpaceImageAxis) = sdims(arraydata(img))
 
-ImageCore.coords_spatial(img::FITSImageAxis) = coords_spatial(arraydata(img))
+ImageCore.coords_spatial(img::SpaceImageAxis) = coords_spatial(arraydata(img))
 
-ImageCore.spatialorder(img::FITSImageAxis) = spatialorder(arraydata(img))
+ImageCore.spatialorder(img::SpaceImageAxis) = spatialorder(arraydata(img))
 
-ImageAxes.nimages(img::FITSImageAxis) = nimages(arraydata(img))
+ImageAxes.nimages(img::SpaceImageAxis) = nimages(arraydata(img))
 
-ImageCore.size_spatial(img::FITSImageAxis) = size_spatial(arraydata(img))
+ImageCore.size_spatial(img::SpaceImageAxis) = size_spatial(arraydata(img))
 
-ImageCore.indices_spatial(img::FITSImageAxis) = indices_spatial(arraydata(img))
+ImageCore.indices_spatial(img::SpaceImageAxis) = indices_spatial(arraydata(img))
 
-ImageCore.assert_timedim_last(img::FITSImageAxis) = assert_timedim_last(arraydata(img))
+ImageCore.assert_timedim_last(img::SpaceImageAxis) = assert_timedim_last(arraydata(img))
 
 #### Permutations over dimensions ####
 
 """
     permutedims(img, perm, [spatialprops])
-When permuting the dimensions of an FITSImage, you can optionally
+When permuting the dimensions of an Spimage, you can optionally
 specify that certain headers are spatial and they will also be
 permuted. `spatialprops` defaults to `spatialproperties(img)`.
 """
 permutedims
 
-function permutedims_props!(ret::FITSImage, ip, spatialprops=spatialproperties(ret))
+function permutedims_props!(ret::Spimage, ip, spatialprops=spatialproperties(ret))
     if !isempty(spatialprops)
         for prop in spatialprops
             if hasproperty(ret, prop)
@@ -386,23 +386,23 @@ function permutedims_props!(ret::FITSImage, ip, spatialprops=spatialproperties(r
     ret
 end
 
-function permutedims(img::FITSImageAxis, perm)
+function permutedims(img::SpaceImageAxis, perm)
     p = AxisArrays.permutation(perm, axisnames(arraydata(img)))
     ip = sortperm([p...][[coords_spatial(img)...]])
     permutedims_props!(copyproperties(img, permutedims(arraydata(img), p)), ip)
 end
-function permutedims(img::FITSImage, perm)
+function permutedims(img::Spimage, perm)
     ip = sortperm([perm...][[coords_spatial(img)...]])
     permutedims_props!(copyproperties(img, permutedims(arraydata(img), perm)), ip)
 end
 
-# Note: `adjoint` does not recurse into FITSImage properties.
-function Base.adjoint(img::FITSImage{T,2}) where {T<:Real}
+# Note: `adjoint` does not recurse into Spimage properties.
+function Base.adjoint(img::Spimage{T,2}) where {T<:Real}
     ip = sortperm([2,1][[coords_spatial(img)...]])
     permutedims_props!(copyproperties(img, adjoint(arraydata(img))), ip)
 end
 
-function Base.adjoint(img::FITSImage{T,1}) where T<:Real
+function Base.adjoint(img::Spimage{T,1}) where T<:Real
     check_empty_spatialproperties(img)
     copyproperties(img, arraydata(img)')
 end
@@ -414,7 +414,7 @@ have been declared "spatial" and hence should be permuted when calling
 `permutedims`.  Declare such properties like this:
     img[:spatialproperties] = [:spacedirections]
 """
-spatialproperties(img::FITSImage) = @get img :spatialproperties [:spacedirections]
+spatialproperties(img::Spimage) = @get img :spatialproperties [:spacedirections]
 
 function check_empty_spatialproperties(img)
     sp = spatialproperties(img)
