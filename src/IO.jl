@@ -88,7 +88,7 @@ end
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(img::AbstractArray)
+function writefits(fname, img::AbstractArray)
     return FITS(fname, "w") do fits
         write(fits, img)
     end
