@@ -26,11 +26,13 @@ function ds9show(imgs...; lock=true)
     end
 
     if Sys.iswindows()
-        cmd = `C:\\SAOImageDS9\\ds9.exe $fnames`
-    elseif Sys.isapple()
-        cmd = `/Applications/SAOImage\ DS9.app/Contents/MacOS/ds9 $fnames`
+        cmd = `C:\\SAOImageDS9\\ds9.exe $fnames`        
+    elseif Sys.isapple() && isdir("/Applications/SAOImageDS9.app")
+        cmd = `open --wait-apps /Applications/SAOImageDS9.app $fnames`
+    elseif Sys.isapple() && isdir("/Applications/SAOImage DS9.app")
+        cmd = `open --wait-apps /Applications/SAOImage\ DS9.app $fnames`
     else
-        @warn "Untested system for ds9show. Assuming ds9 is in PATH."
+        @warn "Untested system for ds9show. Assuming ds9 is in PATH." maxlog=1
         cmd = `ds9 $fnames`
     end
 
