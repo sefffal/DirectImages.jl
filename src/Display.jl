@@ -46,7 +46,7 @@ function imshow(img; τ=nothing, lims=nothing   )
         unit = "mas"
     end
 
-    colorbar_title = nothing
+    colorbar_title = ""
     if hasproperty(img, :UNIT)
         colorbar_title = img.UNIT
     end

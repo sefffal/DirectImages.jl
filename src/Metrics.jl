@@ -12,25 +12,29 @@ deviations.
 *NOTE* This is the 1σ contrast. Multiply by five to get the usual confidence
 value.
 """
-function contrast(image)
+function contrast(image; step=2)
     I = origin(image)
-    dx = I[1] .- axes(image,1)
-    dy = I[2] .- axes(image,2)
+    if I[1] == I[2] == 1
+        image = centered(image)
+    end
+    dx = UnitRange(axes(image,1)) 
+    dy = UnitRange(axes(image,2)) 
     dr = sqrt.(
         dx.^2 .+ (dy').^2
     )
+
+    c_img = collect(image)
     
-    step = 20
     bins = 0:step:maximum(dr)
     # bins = 30:step:100
     contrast = zeros(size(bins))
     mask = falses(size(image))
-    mask2 = isfinite.(image)
+    mask2 = isfinite.(c_img)
     for i in eachindex(bins)
         bin = bins[i]
         mask .= (bin.-step/2) .< dr .< (bin.+step/2) 
         mask .&= mask2
-        c = std(view(image, mask))
+        c = std(view(c_img, mask))
         contrast[i] = c
     end
 
