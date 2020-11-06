@@ -64,6 +64,38 @@ end
 export readfits
 
 
+
+"""
+Write an array to a FITS file. Works for any array. Does not add headers
+"""
+function writefits(fname, img::Spimage)
+    return FITS(fname, "w") do file
+        try
+            props = propertynames(img)
+            headers = FITSHeader(
+                [String(prop) for prop in props],
+                Any[img[prop] for prop in props],
+                String[img[prop,/] for prop in props],
+            )
+            write(file, collect(arraydata(img)), header=headers)
+        catch exp
+            println(stderr,exp)
+            Base.show_backtrace(stderr)
+            rethrow(exp)
+        end
+    end
+end
+"""
+Write an array to a FITS file. Works for any array. Does not add headers
+"""
+function writefits(img::AbstractArray)
+    return FITS(fname, "w") do fits
+        write(fits, img)
+    end
+end
+export writefits
+
+
 """
     readheader("info.fits")
 
