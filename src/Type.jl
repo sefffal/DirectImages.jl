@@ -111,6 +111,9 @@ function origin(A::AbstractArray)
         # CartesianIndex(Images.center.(axes(A))...)
         indices = Int[]
         for ax in 1:length(size(A))
+            push!(indices, argmin(abs.(UnitRange(axes(A,ax)))))
+        end
+        return indices
 
         # closest_to_zero = firstindex(CartesianIndices(a))
         # closest_dist = zero(eltype(closest_to_zero))

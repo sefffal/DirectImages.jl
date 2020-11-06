@@ -20,7 +20,6 @@ function imshow(img; τ=nothing, lims=nothing   )
     if !isnothing(τ)
         σ = std(filter(isfinite, view(img,:,:,1,1,1)))
         clims = (-0.5τ*σ, +1τ*σ)
-        @show clims
     end
 
     xlims=nothing
