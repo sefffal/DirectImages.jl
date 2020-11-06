@@ -1,6 +1,8 @@
 using Statistics
 
 """
+    contrast(image; step=2)
+
 Measure the contrast of an image, in the sense of high contrast imaging.
 That is, divide the image into annuli moving outwards from the centre
 (index 0,0 if offset image) and calculate the standard deviation in 
