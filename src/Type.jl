@@ -3,12 +3,15 @@
 # see the top of ImageAxes
 using ImageAxes
 using ImageCore
+using Images
+import Images
 using Printf
 import AxisArrays
 using OffsetArrays
 
 import Base: +, -, *, /
 import Base: permutedims
+
 
 
 const ViewIndex = Union{Base.ViewIndex, Colon}
@@ -54,19 +57,23 @@ Construct an image with `Spimage(A, props)` (for a headers dictionary
 """
 struct Spimage{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     data::A
-    headers::OrderedDict{Symbol,Any}
+    headers::OrderedDict{Symbol,CommentedValue}
 end
 
 # TODO: friendly constructors
 
 
 function Spimage(data::AbstractArray{T,N}) where {T,N}
-    return Spimage{T,N,typeof(data)}(data, OrderedDict{Symbol,Any}())
+    return Spimage{T,N,typeof(data)}(data, OrderedDict{Symbol,CommentedValue}())
 end
 
-function Spimage(data::AbstractArray{T,N}, axes::AbstractRange...) where {T,N}
+function Spimage(data::AbstractArray{T,N}, headers::OrderedDict{Symbol,CommentedValue}) where {T,N}
+    return Spimage{T,N,typeof(data)}(data, headers)
+end
+
+function Spimage(data::AbstractArray{T,N}, headers::OrderedDict{Symbol,CommentedValue}, axes::AbstractRange...) where {T,N}
     data_offset = OffsetArray(data, axes...)
-    return Spimage{T,N,typeof(data_offset)}(data_offset, OrderedDict{Symbol,Any}())
+    return Spimage{T,N,typeof(data_offset)}(data_offset, headers)
 end
 
 
@@ -79,6 +86,47 @@ Base.size(A::SpaceImageAxis, ::Type{Ax}) where {Ax<:Axis} = size(arraydata(A), A
 Base.axes(A::Spimage) = axes(arraydata(A))
 Base.axes(A::SpaceImageAxis, Ax::Axis) = axes(arraydata(A), Ax)
 Base.axes(A::SpaceImageAxis, ::Type{Ax}) where {Ax<:Axis} = axes(arraydata(A), Ax)
+
+"""
+    origin(image_or_array)
+
+Return the index corresponding to the "origin" of the data. If a regular array
+or Spimage, this is the same as `Images.center`. 
+
+This function diverges from `Images.center` if the data has offset indices. In that
+case, it returns the index closest to zero.
+
+Example:
+julia> rand(3,3) |> origin
+
+"""
+function origin(A::AbstractArray)
+    Ifirst = first(CartesianIndices(A))
+    if Ifirst == CartesianIndex((1 for _ in 1:length(Ifirst))...)
+        return Images.center(A)
+    else
+        # We should be able to find this without iterating through all indices
+
+        # How to find the index closest to zero?
+        # CartesianIndex(Images.center.(axes(A))...)
+        indices = Int[]
+        for ax in 1:length(size(A))
+
+        # closest_to_zero = firstindex(CartesianIndices(a))
+        # closest_dist = zero(eltype(closest_to_zero))
+        # for I in CartesianIndices(a)
+        #     squares = zero(eltype(I))
+        #     for i in eachindex(I)
+        #         squares += i^2
+        #     end
+
+            
+    end
+end
+function origin(A::AbstractArray, axis)
+    return origin(A)[axis]
+end
+export origin
 
 datatype(::Type{Spimage{T,N,A}}) where {T,N,A<:AbstractArray} = A
 
@@ -299,8 +347,8 @@ AxisArrays.axisvalues(img::SpaceImageAxis) = axisvalues(arraydata(img))
 #### Properties ####
 
 """
-    headers(imgmeta) -> props
-Extract the headers dictionary `props` for `imgmeta`. `props`
+    headers(img) -> props
+Extract the headers dictionary `props` for `img`. `props`
 shares storage with `img`, so changes to one affect the other.
 See also: [`arraydata`](@ref).
 """
@@ -389,22 +437,22 @@ end
 function permutedims(img::SpaceImageAxis, perm)
     p = AxisArrays.permutation(perm, axisnames(arraydata(img)))
     ip = sortperm([p...][[coords_spatial(img)...]])
-    permutedims_props!(copyproperties(img, permutedims(arraydata(img), p)), ip)
+    permutedims_props!(copyheaders(img, permutedims(arraydata(img), p)), ip)
 end
 function permutedims(img::Spimage, perm)
     ip = sortperm([perm...][[coords_spatial(img)...]])
-    permutedims_props!(copyproperties(img, permutedims(arraydata(img), perm)), ip)
+    permutedims_props!(copyheaders(img, permutedims(arraydata(img), perm)), ip)
 end
 
 # Note: `adjoint` does not recurse into Spimage properties.
 function Base.adjoint(img::Spimage{T,2}) where {T<:Real}
     ip = sortperm([2,1][[coords_spatial(img)...]])
-    permutedims_props!(copyproperties(img, adjoint(arraydata(img))), ip)
+    permutedims_props!(copyheaders(img, adjoint(arraydata(img))), ip)
 end
 
 function Base.adjoint(img::Spimage{T,1}) where T<:Real
     check_empty_spatialproperties(img)
-    copyproperties(img, arraydata(img)')
+    copyheaders(img, arraydata(img)')
 end
 
 """
@@ -425,6 +473,14 @@ function check_empty_spatialproperties(img)
     end
     nothing
 end
+
+
+function Images.centered(A::Spimage)
+    new_ax =  map(i->axes(A,i).-floor(Int, origin(A,i)), eachindex(axes(A)))
+    Spimage(A, headers(A), new_ax...)
+end
+export centered
+
 
 #### Low-level utilities ####
 function showdictlines(io::IO, dict::AbstractDict, suppress::Set)

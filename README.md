@@ -30,12 +30,19 @@ convenient tools for loading and manipulating astronomical images and datacubes.
 ```julia
 
 # Load an image
-img = Spimage("M32.fits.gz")
+img = readfits("M32.fits.gz")
 
-# Inspect or set headers
+# Get or set headers as properties of the image.
 img.DATE_OBS = "2020-01-01"
+
+# Or use indexing
 img[:DATE_OBS] = "2020-01-01"
 img[:DATE_OBS,/] = "The date the observations were taken"
+
+# Get list of headers
+for key in propertnames(img)
+    println(img[key])
+end
 
 # Use offset indices to keep track of image positions
 img[-10,10] == 1.2

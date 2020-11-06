@@ -46,6 +46,10 @@ function readfits(
                     img[Symbol(key),/] = get_comment(headers, key)
                 end
 
+                if !haskey(headers, "FNAME")
+                    img[:FNAME] = basename(fname)
+                    img[:FNAME,/] = "file name, as loaded into Julia"
+                end
                 return img
             end
 
