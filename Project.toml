@@ -1,5 +1,5 @@
-name = "SpaceImages"
-uuid = "26ebdbcc-6fd5-430b-8d9b-539854b5969a"
+name = "DirectImages"
+uuid = "d0ffc639-4e6f-47d5-8eab-0368fa958583"
 authors = ["Will Thompson <will.thompson@outlook.com>"]
 version = "0.1.0"
 

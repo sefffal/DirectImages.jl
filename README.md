@@ -1,4 +1,4 @@
-# SpaceImages
+# DirectImages
 
 This is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
 common in astronomy. 

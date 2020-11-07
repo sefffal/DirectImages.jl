@@ -1,25 +1,25 @@
 @testset "Basic Functionality" begin
 
     A = rand(100,100)
-    img = Spimage(A)
+    img = DirectImage(A)
     img[1,1]
 
-    img = Spimage(A, -50:50, -50:50)
+    img = DirectImage(A, -50:50, -50:50)
     img[0,0]
 
-    img = Spimage(A, -25:0.5:25, -25:0.5:25)
+    img = DirectImage(A, -25:0.5:25, -25:0.5:25)
     img[1.5,1.5]
 
-    img = Spimage(A, -25m:0.5m:25m, -25m:0.5m:25m)
+    img = DirectImage(A, -25m:0.5m:25m, -25m:0.5m:25m)
     img[9.5m,20m]
 
-    img = Spimage(view(A, 1:10, 1:10), 1:10, 1:10)
+    img = DirectImage(view(A, 1:10, 1:10), 1:10, 1:10)
     img[5,5]
 
-    img = Spimage(A, c=1, d=2, f=5)
+    img = DirectImage(A, c=1, d=2, f=5)
     img.c == 1
 
-    img = Spimage(A, f = 1 => "a comment", b = 5 => "another comment")
+    img = DirectImage(A, f = 1 => "a comment", b = 5 => "another comment")
     img.f == 1
     img[/].f == "a comment"
 
@@ -28,8 +28,8 @@
 
     @testset "IO" begin
         
-        img = Spimage("test.fits")
-        img = Spimage("test.fits", 1, 1:100, 2:5)
+        img = DirectImage("test.fits")
+        img = DirectImage("test.fits", 1, 1:100, 2:5)
 
         write("test2.fits", img)
     end

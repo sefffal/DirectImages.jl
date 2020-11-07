@@ -6,7 +6,7 @@ using FITSIO
 
 Load a FITS file from the given file name or in-memory Byte array (Vector{UInt8}).
 
-By default, this will return a vector of Spimage for each data extension in the file.
+By default, this will return a vector of DirectImage for each data extension in the file.
 You can also specify `hdu=1` for example, to only load the first image.
 
 ```julia
@@ -40,7 +40,7 @@ function readfits(
                 data = read(fits[h_no], slices...)
                 headers = read_header(fits[h_no])
 
-                img = Spimage(data)
+                img = DirectImage(data)
                 for key in eachindex(headers)
                     img[Symbol(key)] = headers[key]
                     img[Symbol(key),/] = get_comment(headers, key)
@@ -68,7 +68,7 @@ export readfits
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, img::Spimage)
+function writefits(fname, img::DirectImage)
     return FITS(fname, "w") do file
         try
             props = propertynames(img)
@@ -90,7 +90,7 @@ Write an array to a FITS file. Works for any array. Does not add headers
 """
 function writefits(fname, img::AbstractArray)
     return FITS(fname, "w") do fits
-        write(fits, img)
+        write(fits, collect(img))
     end
 end
 export writefits
@@ -100,7 +100,7 @@ export writefits
     readheader("info.fits")
 
 Read only the headers from a FITS file.
-Returns an empty Spimage with the headers populated and accessible as properties.
+Returns an empty DirectImage with the headers populated and accessible as properties.
 
 Note: readfits returns data combined with headers. There is no need to run both functions.
 
@@ -123,7 +123,7 @@ function readheader(
             data = read(fits[h_no], slices...)
             headers = read_header(fits[h_no])
 
-            img = Spimage(data)
+            img = DirectImage(data)
             for key in eachindex(headers)
                 img[Symbol(key)] = headers[key]
                 img[Symbol(key),/] = get_comment(headers, key)

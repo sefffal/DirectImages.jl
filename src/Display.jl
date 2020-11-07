@@ -65,13 +65,13 @@ Display an image with convenient formatting.
 Looks into the FITS headers for the platescale, if available.
 
 !! NOTE: You must install the Plots package to use imshow.
-Run `using Plots` before `using SpaceImages` to enable.
+Run `using Plots` before `using DirectImages` to enable.
 
 """
 function imshow end
 
 function imshow(img; τ=nothing, lims=nothing, kwargs... )
-    error("The Plots package is not active. Run `using Plots` before `using SpaceImages` to enable.")
+    error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
 end
 
 # Optionally depend on Plots
@@ -117,7 +117,7 @@ function __init__()
             end
         
         
-        return heatmap(
+        return Plots.heatmap(
                 UnitRange(axes(img,1)).*platescale,
                 UnitRange(axes(img,2)).*platescale,
                 collect(transpose(img[:,:,1,1,1]));

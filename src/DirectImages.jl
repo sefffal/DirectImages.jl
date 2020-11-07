@@ -1,11 +1,11 @@
 """
-SpaceImages.jl
+DirectImages.jl
 
 A package of useful functions for interacting with FITS files.
 
 # Available Functions
 
-- `Spimage(array)`
+- `DirectImage(array)`
 - `headers(img)`
 - `axes(img)`
 - `origin(img)`
@@ -22,12 +22,15 @@ A package of useful functions for interacting with FITS files.
 - `contrast`
 
 """
-module SpaceImages
+module DirectImages
 
 include("Type.jl")
 include("Time.jl")
 include("Metrics.jl")
 include("IO.jl")
 include("Display.jl")
+
+include("precompile.jl")
+
 
 end 
