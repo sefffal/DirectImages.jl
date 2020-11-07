@@ -1,28 +1,31 @@
-# DirectImages
+# DirectImages.jl
 
-This is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
+A toolbox for working with FITS images in the context of high contrast / direct imaging.
+
+The main data type is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
 common in astronomy. 
 
 Built on top of FITSIO and the Images ecosystem, this package also bundles
 convenient tools for loading and manipulating astronomical images and datacubes.
 
 
-# Featuers
- - reading and writing FITS cubes
- - read and set FITS comments
+# Features
+ - reading and writing FITS images/cubes/etc
+ - easily read and set FITS comments
  - keeping track of physical coordinates
+ - contrast measurements
+ - send data to SAO DS9 for viewing and manipulation
+ - display data using Plots with reasonable scale limits based +/- standard deviations
 
 # Roadmap
 
- - image registration
+ - easy image registration
  - photometry
- - measure Strehl?
  - basic tools for showing spectra
- - image quality metrics
+ - other image quality metrics, including estimated Strehl
  - contrast measurements for High Contrast Imaging
  - image masking: circles, annuli, etc.
-
- - Interface with DS9 & JS9
+ - Interface with JS9 in addition to DS9
 
 
 ## Example
