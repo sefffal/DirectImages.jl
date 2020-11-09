@@ -65,6 +65,9 @@ imshow(image) # Works with any abstract array
 By default, `imshow` applies τ=7 (you can override with `nothing`) and `plot` uses
 the full colorscale.
 
+Pass `skyconvention=true` to preserve the image, but flip the horizontal axis
+so that the coordinates match RA offset. Useful when combining with DirectOrbits.jl.
+
 
 
 ## Sending to SAO DS9

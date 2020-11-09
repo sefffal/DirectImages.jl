@@ -63,6 +63,8 @@ using RecipesBase
     
     τ = get(plotattributes, :τ, nothing)
     lims = get(plotattributes, :lims, nothing)
+    
+    skyconvention = get(plotattributes, :skyconvention, false)
 
     clims = nothing
     if !(isnothing(τ) || ismissing(τ) || τ==:none)
@@ -125,12 +127,21 @@ using RecipesBase
     xlims --> xlims
     ylims --> ylims
     colorbar_title --> colorbar_title
-    
-    return (
+
+    if skyconvention
+        xflip --> true
+        return (
             UnitRange(axes(img,1)).*platescale,
             UnitRange(axes(img,2)).*platescale,
-            collect(transpose(img[:,:,1,1,1])) 
-    )
+            reverse(collect(transpose(img[:,:,1,1,1])), dims=2)
+        )
+    else
+        return (
+                UnitRange(axes(img,1)).*platescale,
+                UnitRange(axes(img,2)).*platescale,
+                collect(transpose(img[:,:,1,1,1])) 
+        )
+    end
 end
 
 """
@@ -155,8 +166,11 @@ end
 using Requires
 function __init__()
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-        function imshow(img; τ=5, lims=nothing, kwargs...)
+        function imshow(img::DirectImage; τ=5, lims=nothing, kwargs...)
             Plots.plot(img; τ, lims, kwargs...)
+        end    
+        function imshow(img; τ=5, lims=nothing, kwargs...)
+            Plots.plot(DirectImage(img); τ, lims, kwargs...)
         end
     end
 
