@@ -46,6 +46,7 @@ function ds9show(imgs...; lock=true)
             run(cmd)
         finally
             # Then delete files whenever it's done
+            println()
             @info "cleaning up tmp. files from DS9" fnames
             rm.(fnames)
         end
@@ -54,7 +55,83 @@ function ds9show(imgs...; lock=true)
 
     return task
 end
+ds9show(imgs::AbstractArray{<:AbstractArray}; kwargs...) = ds9show(imgs...;kwargs...)
 export ds9show
+
+using RecipesBase
+@recipe function f(img::DirectImage)
+    
+    τ = get(plotattributes, :τ, nothing)
+    lims = get(plotattributes, :lims, nothing)
+
+    clims = nothing
+    if !(isnothing(τ) || ismissing(τ) || τ==:none)
+        σ = std(filter(isfinite, view(img,:,:,1,1,1)))
+        clims = (-0.5τ*σ, +1τ*σ)
+    end
+
+    delete!(plotattributes, :add_marker)
+
+    xlims=nothing
+    ylims=nothing
+    if !isnothing(lims)
+        if length(lims) == 1
+            lims = (-lims, lims)
+        end
+        xlims = lims
+        ylims = lims
+    end
+
+
+    unit = "px"
+    platescale = 1.0
+    if hasproperty(img, :PIXSCALE)
+        platescale = img.PIXSCALE*3.6e6
+        unit = "mas"
+    elseif hasproperty(img, :PLATESC)
+        platescale = img.PLATESC*1e3
+        unit = "mas"
+    elseif hasproperty(img, :CDELT1)
+        platescale = img.CDELT1*1e3
+        unit = "mas"
+    end
+
+    colorbar_title = ""
+    if hasproperty(img, :UNIT)
+        colorbar_title = img.UNIT
+    end
+
+    seriestype := :heatmap
+    seriescolor --> :magma
+    xguide --> "X - $unit"
+    yguide --> "Y - $unit"
+    fontfamily --> "Times"
+    minorticks --> true
+    label --> ""
+    # grid --> false
+    foreground_color_grid --> "#000"
+    gridalpha --> 0.1
+    gridlinewidth --> 1
+    framestyle --> :box
+    # legend --> false
+    # background_color_outside --> "#000000"
+    # background_color_inside --> "#000000"
+    # foreground_color --> "#eee"
+    aspect_ratio --> 1
+    right_margin --> 10Measures.mm
+    left_margin --> 10Measures.mm
+    titlelocation --> :left
+    clims --> clims
+    xlims --> xlims
+    ylims --> ylims
+    colorbar_title --> colorbar_title
+    
+    return (
+            UnitRange(axes(img,1)).*platescale,
+            UnitRange(axes(img,2)).*platescale,
+            collect(transpose(img[:,:,1,1,1])) 
+    )
+end
 
 """
 imshow(img; τ=5, lims=1200)
@@ -70,7 +147,7 @@ Run `using Plots` before `using DirectImages` to enable.
 """
 function imshow end
 
-function imshow(img; τ=nothing, lims=nothing, kwargs... )
+function imshow(img; τ=5, lims=nothing, kwargs... )
     error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
 end
 
@@ -78,73 +155,8 @@ end
 using Requires
 function __init__()
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-        function imshow(img; τ=nothing, lims=nothing, kwargs...)
-        
-        
-            clims = nothing
-            if !isnothing(τ)
-                σ = std(filter(isfinite, view(img,:,:,1,1,1)))
-                clims = (-0.5τ*σ, +1τ*σ)
-            end
-        
-            xlims=nothing
-            ylims=nothing
-            if !isnothing(lims)
-                if length(lims) == 1
-                    lims = (-lims, lims)
-                end
-                xlims = lims
-                ylims = lims
-            end
-        
-        
-            unit = "px"
-            platescale = 1.0
-            if hasproperty(img, :PIXSCALE)
-                platescale = img.PIXSCALE*3.6e6
-                unit = "mas"
-            elseif hasproperty(img, :PLATESC)
-                platescale = img.PLATESC*1e3
-                unit = "mas"
-            elseif hasproperty(img, :CDELT1)
-                platescale = img.CDELT1*1e3
-                unit = "mas"
-            end
-        
-            colorbar_title = ""
-            if hasproperty(img, :UNIT)
-                colorbar_title = img.UNIT
-            end
-        
-        
-        return Plots.heatmap(
-                UnitRange(axes(img,1)).*platescale,
-                UnitRange(axes(img,2)).*platescale,
-                collect(transpose(img[:,:,1,1,1]));
-                xlabel = "X - $unit",
-                ylabel = "Y - $unit",
-                fontfamily = "Times",
-                minorticks = true,
-                label = "",
-                # grid = false,
-                foreground_color_grid = "#000",
-                gridalpha = 0.1,
-                gridlinewidth = 1,
-                framestyle = :box,
-                # legend = false,
-                # background_color_outside = "#000000",
-                # background_color_inside = "#000000",
-                # foreground_color = "#eee",
-                aspect_ratio = 1,
-                right_margin = 10Measures.mm,
-                left_margin = 10Measures.mm,
-                titlelocation = :left,
-                clims,
-                xlims,
-                ylims,
-                colorbar_title,
-                kwargs...
-        )
+        function imshow(img; τ=5, lims=nothing, kwargs...)
+            Plots.plot(img; τ, lims, kwargs...)
         end
     end
 
