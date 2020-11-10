@@ -1,5 +1,5 @@
 using Statistics
-
+using Interpolations
 """
     contrast(image; step=2)
 
@@ -43,6 +43,19 @@ function contrast(image; step=2)
     return (;separation=bins, contrast)
 end
 export contrast
+
+
+"""
+    contrast_interp(image; step=2)
+
+Returns a linear interpolation on top of the results from `contrast`.
+Extrapolated results return Inf.
+"""
+function contrast_interp(image; step=2)
+    cont = contrast(image; step)
+    return LinearInterpolation(cont.separation, cont.contrast, extrapolation_bc=Inf)
+end
+export contrast_interp
 
 function profile(image)
 end
