@@ -3,20 +3,36 @@
 
 using Measures
 using Statistics
-
+import Images
 
 
 using FITSIO
 
 """
-    ds9show(images..., [lock=true])
+    ds9show(images..., [lock=true], [pad=nothing])
 
 Open one or more images in a SAO DS9 window.
 By default, the scales and zooms of the images are locked.
 Pass lock=false to disable.
+
+If you pass `pad=true`, the images are padded with NaN
+so that they have equal axes. By default (pad=nothing),
+padding will be applied when all images are 2D and
+locked.
 """
-function ds9show(imgs...; lock=true)
+function ds9show(imgs...; lock=true, pad=nothing)
     # http://ds9.si.edu/doc/ref/command.html#fits
+
+    if isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(Ref(size.(imgs)) .== size(first(imgs)))
+        @warn "Padding images so that locked axes work correctly. Disable with either `pad=false` or `lock=false`"
+        pad = true
+    else
+        pad = false
+    end
+
+    if pad
+        imgs = [collect.(Images.paddedviews(NaN, imgs...))...]
+    end
 
     fnames = String[]
     for img in imgs
