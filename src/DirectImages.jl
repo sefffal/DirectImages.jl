@@ -29,6 +29,7 @@ include("Time.jl")
 include("Metrics.jl")
 include("IO.jl")
 include("Display.jl")
+include("Utilities.jl")
 
 include("precompile.jl")
 
