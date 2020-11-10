@@ -74,14 +74,12 @@ using RecipesBase
 
     delete!(plotattributes, :add_marker)
 
-    xlims=nothing
-    ylims=nothing
     if !isnothing(lims)
         if length(lims) == 1
             lims = (-lims, lims)
         end
-        xlims = lims
-        ylims = lims
+        xlims := lims
+        ylims := lims
     end
 
 
@@ -124,8 +122,6 @@ using RecipesBase
     left_margin --> 10Measures.mm
     titlelocation --> :left
     clims --> clims
-    xlims --> xlims
-    ylims --> ylims
     colorbar_title --> colorbar_title
 
     if skyconvention
