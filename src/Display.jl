@@ -23,7 +23,7 @@ locked.
 function ds9show(imgs...; lock=true, pad=nothing)
     # http://ds9.si.edu/doc/ref/command.html#fits
 
-    if isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(Ref(size.(imgs)) .== size(first(imgs)))
+    if length(imgs) > 1 && isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(Ref(size.(imgs)) .== size(first(imgs)))
         @warn "Padding images so that locked axes work correctly. Disable with either `pad=false` or `lock=false`"
         pad = true
     else
