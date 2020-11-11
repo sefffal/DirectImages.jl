@@ -21,8 +21,12 @@ padding will be applied when all images are 2D and
 locked.
 """
 function ds9show(imgs...; lock=true, pad=nothing)
+
+    # See this link for DS9 Command reference
     # http://ds9.si.edu/doc/ref/command.html#fits
 
+    # If lock is true (deafult) and the images have different sizes (and are 2D), and
+    # padding has not been disabled, turn padding on.
     if length(imgs) > 1 && isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(Ref(size.(imgs)) .== size(first(imgs)))
         @warn "Padding images so that locked axes work correctly. Disable with either `pad=false` or `lock=false`"
         pad = true
@@ -30,10 +34,15 @@ function ds9show(imgs...; lock=true, pad=nothing)
         pad = false
     end
 
+    # If pad is set, pad out the images with NaN to be the same size.
     if pad
+        # Sort of an ungly line. paddedviews returns a tuple of views.
+        # We need to convert to a vector of arrays.
         imgs = [collect.(Images.paddedviews(NaN, imgs...))...]
     end
 
+    # For each image, write a temporary file.
+    # We clean these up after DS9 exits.
     fnames = String[]
     for img in imgs
         tempfile = tempname()
@@ -41,6 +50,7 @@ function ds9show(imgs...; lock=true, pad=nothing)
         push!(fnames, tempfile)
     end
 
+    # Decide where to look to open DS9 depending on the platform
     if Sys.iswindows()
         cmd = `C:\\SAOImageDS9\\ds9.exe $fnames`        
     elseif Sys.isapple() && isdir("/Applications/SAOImageDS9.app")
@@ -52,10 +62,13 @@ function ds9show(imgs...; lock=true, pad=nothing)
         cmd = `ds9 $fnames`
     end
 
+    # If lock=true, then add almost all possible lock flags to the command
     if lock
         cmd = `$cmd -lock frame image -lock crosshair image -lock crop image -lock slice image -lock bin yes -lock axes yes -lock scale yes -lock scalelimits yes -lock colorbar yes -lock block yes -lock smooth yes `
     end
 
+    # Open DS9 asyncronously.
+    # When it finishes or errors, delete the temporary FITS files.
     task = @async begin
         try
             # Open DS9
@@ -69,11 +82,17 @@ function ds9show(imgs...; lock=true, pad=nothing)
         return nothing
     end
 
+    # Return the async task, in case the user wants to run something when they are done.
     return task
 end
+
+# If called with a vector of images, expand and call the function above
 ds9show(imgs::AbstractArray{<:AbstractArray}; kwargs...) = ds9show(imgs...;kwargs...)
 export ds9show
 
+
+# This is a Plots recipe for how to display our image type.
+# If the user runs `using Plots; plot(img)` this will be called.
 using RecipesBase
 @recipe function f(img::DirectImage)
     
@@ -156,6 +175,7 @@ using RecipesBase
     end
 end
 
+
 """
 imshow(img; τ=5, lims=1200)
 
@@ -166,7 +186,6 @@ Looks into the FITS headers for the platescale, if available.
 
 !! NOTE: You must install the Plots package to use imshow.
 Run `using Plots` before `using DirectImages` to enable.
-
 """
 function imshow end
 
@@ -174,10 +193,14 @@ function imshow(img; τ=5, lims=nothing, kwargs... )
     error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
 end
 
-# Optionally depend on Plots
+# Optionally depend on Plots. If the user imports it, this code will be run to set up
+# our `imshow` function.
 using Requires
 function __init__()
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
+
+        # Imshow just ensures that the argument is a DirectImage and then 
+        # dispatches to the Plots recipe above with a default value for τ.
         function imshow(img::DirectImage; τ=5, lims=nothing, kwargs...)
             Plots.plot(img; τ, lims, kwargs...)
         end    
