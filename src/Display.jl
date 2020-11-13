@@ -20,7 +20,7 @@ so that they have equal axes. By default (pad=nothing),
 padding will be applied when all images are 2D and
 locked.
 """
-function ds9show(imgs...; lock=true, pad=nothing)
+function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=nothing)
 
     # See this link for DS9 Command reference
     # http://ds9.si.edu/doc/ref/command.html#fits
@@ -54,12 +54,20 @@ function ds9show(imgs...; lock=true, pad=nothing)
     if Sys.iswindows()
         cmd = `C:\\SAOImageDS9\\ds9.exe $fnames`        
     elseif Sys.isapple() && isdir("/Applications/SAOImageDS9.app")
-        cmd = `open -W /Applications/SAOImageDS9.app --args $fnames -scale mode 99.5`
+        cmd = `open -W /Applications/SAOImageDS9.app --args $fnames`
     elseif Sys.isapple() && isdir("/Applications/SAOImage DS9.app")
-        cmd = `open -W /Applications/SAOImage\ DS9.app --args $fnames -scale mode 99.5`
+        cmd = `open -W /Applications/SAOImage\ DS9.app --args $fnames`
     else
         @warn "Untested system for ds9show. Assuming ds9 is in PATH." maxlog=1
         cmd = `ds9 $fnames`
+    end
+
+    if !isnothing(setscale) 
+        cmd =  `$cmd -scale mode $setscale`
+    end
+
+    if !isnothing(setcmap) 
+        cmd =  `$cmd -cmap $setcmap`
     end
 
     # If lock=true, then add almost all possible lock flags to the command
