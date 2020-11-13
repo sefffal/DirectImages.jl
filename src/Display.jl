@@ -54,9 +54,9 @@ function ds9show(imgs...; lock=true, pad=nothing)
     if Sys.iswindows()
         cmd = `C:\\SAOImageDS9\\ds9.exe $fnames`        
     elseif Sys.isapple() && isdir("/Applications/SAOImageDS9.app")
-        cmd = `open -W /Applications/SAOImageDS9.app --args $fnames`
+        cmd = `open -W /Applications/SAOImageDS9.app --args $fnames -scale mode 99.5`
     elseif Sys.isapple() && isdir("/Applications/SAOImage DS9.app")
-        cmd = `open -W /Applications/SAOImage\ DS9.app --args $fnames`
+        cmd = `open -W /Applications/SAOImage\ DS9.app --args $fnames -scale mode 99.5`
     else
         @warn "Untested system for ds9show. Assuming ds9 is in PATH." maxlog=1
         cmd = `ds9 $fnames`
