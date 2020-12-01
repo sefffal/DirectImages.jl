@@ -68,16 +68,18 @@ export readfits
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, img::DirectImage)
+function writefits(fname, images::DirectImage...)
     return FITS(fname, "w") do file
         try
-            props = propertynames(img)
-            headers = FITSHeader(
-                [String(prop) for prop in props],
-                Any[img[prop] for prop in props],
-                String[img[prop,/] for prop in props],
-            )
-            write(file, collect(arraydata(img)), header=headers)
+            for img in images
+                props = propertynames(img)
+                headers = FITSHeader(
+                    [String(prop) for prop in props],
+                    Any[img[prop] for prop in props],
+                    String[img[prop,/] for prop in props],
+                )
+                write(file, collect(arraydata(img)), header=headers)
+            end
         catch exp
             println(stderr,exp)
             Base.show_backtrace(stderr)
@@ -88,9 +90,17 @@ end
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, img::AbstractArray)
+function writefits(fname, images::AbstractArray...)
     return FITS(fname, "w") do fits
-        write(fits, collect(img))
+        try
+            for img in images
+                write(fits, collect(img))
+            end
+        catch exp
+            println(stderr,exp)
+            Base.show_backtrace(stderr)
+            rethrow(exp)
+        end
     end
 end
 export writefits
