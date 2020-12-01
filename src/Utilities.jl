@@ -1,3 +1,17 @@
+"""
+    centre_of_gravity(img)
+
+Given a matrix (i.e. an image) return the centre of gravity.
+This is an index position (not rounded).
+"""
+function centre_of_gravity(img)
+    tot = sum(img)
+    cog_x = sum(axes(img,1).*reshape(sum(img,dims=2),:))/tot
+    cog_y = sum(axes(img,2).*reshape(sum(img,dims=1),:))/tot
+    return (cog_x, cog_y)
+end
+export centre_of_gravity
+
 
 """
     profile2image(profile, image)
