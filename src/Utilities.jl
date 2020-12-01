@@ -8,8 +8,22 @@ and the values of `profile` interpolated radially from the
 centre.
 """
 function profile2image(profile, image)
-    error("WIP")
+    img_out = similar(image)
+
+    I = origin(image)
+    if I[1] == I[2] == 1
+        image = centered(image)
+    end
+    dx = axes(image,1)
+    dy = axes(image,2)
+    dr = sqrt.(
+        dx.^2 .+ (dy').^2
+    )
+
+    img_out .= profile.(dr)
+    return img_out
 end
+export profile2image
 
 """
     lookup_coord(img, [125.24, -129.1], 12.43)

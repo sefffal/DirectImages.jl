@@ -30,7 +30,7 @@ include("Metrics.jl")
 include("IO.jl")
 include("Display.jl")
 include("Utilities.jl")
-
+include("Stacking.jl")
 include("precompile.jl")
 
 
