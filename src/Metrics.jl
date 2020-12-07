@@ -59,3 +59,26 @@ export contrast_interp
 
 function profile(image)
 end
+
+
+function snrmap(image, contrast=nothing)
+    I = origin(image)
+    if I[1] == I[2] == 1
+        image = centered(image)
+    end
+    dx = UnitRange(axes(image,1)) 
+    dy = UnitRange(axes(image,2)) 
+    dr = sqrt.(
+        dx.^2 .+ (dy').^2
+    )
+
+    if isnothing(contrast)
+        contrast = contrast_interp(image)
+    end
+    snr = profile2image(contrast, image)
+
+    out = similar(image)
+    out .= image ./ snr
+    return out
+end
+export snrmap
