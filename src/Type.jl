@@ -272,6 +272,8 @@ end
 # similar
 Base.similar(img::DirectImage, ::Type{T}, shape::Dims) where {T} = DirectImage(similar(arraydata(img), T, shape), copy(headers(img)))
 Base.similar(img::DirectImageAxis, ::Type{T}) where {T} = DirectImage(similar(arraydata(img), T), copy(headers(img)))
+Base.similar(img::DirectImage{T,N,<:OffsetArray}) where{T,N} = DirectImage(similar(arraydata(img), T), copy(headers(img)))
+
 
 """
     copyheaders(img::DirectImage, data) -> imgnew
