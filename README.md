@@ -2,17 +2,16 @@
 
 A toolbox for working with FITS images in the context of high contrast / direct imaging.
 
-The main data type is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
-common in astronomy. 
-
 Built on top of FITSIO and the Images ecosystem, this package also bundles
 convenient tools for loading and manipulating astronomical images and datacubes.
 
+The main data type is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
+common in astronomy. 
 
 # Features
- - reading and writing FITS images/cubes/etc
- - easily read and set FITS comments
- - keeping track of physical coordinates
+ - easily reading and writing FITS images/cubes/etc
+ - easily access and set FITS headers and comments
+ - keep track of physical coordinates using OffsetArrays behind the scenes
  - contrast measurements
  - send data to SAO DS9 for viewing and manipulation
  - display data using Plots with reasonable scale limits based +/- standard deviations
@@ -20,13 +19,11 @@ convenient tools for loading and manipulating astronomical images and datacubes.
 
 # Roadmap
 
- - easy image registration
+ - image registration
  - photometry
  - basic tools for showing spectra
- - other image quality metrics, including estimated Strehl
+ - other image quality metrics, including estimating Strehl
  - contrast measurements for High Contrast Imaging
- - image masking: circles, annuli, etc.
- - Interface with JS9 in addition to DS9
 
 
 ## Example
@@ -69,7 +66,6 @@ Pass `skyconvention=true` to preserve the image, but flip the horizontal axis
 so that the coordinates match RA offset. Useful when combining with DirectOrbits.jl.
 
 
-
 ## Sending to SAO DS9
 DS9 must be installed in the usual location on your system.
 ```julia
@@ -83,5 +79,4 @@ ds9show(image1, image2, lock=true) # Lock locks most frame properties (true by d
 ds9show(images_vector, lock=true)
 ```
 
-Calling `ds9show` with multiple images opens them in the same window. Calling `ds9show` separate times will launch new windows for each. Currently, on MacOS frames are always sent
-to the open window, whereas on Windows and Linux, a new window is created for each call to `ds9show`.
+Calling `ds9show` with multiple images opens them in the same window. Calling `ds9show` separate times will launch new windows for each. Currently, on MacOS frames are always sent to the open window, whereas on Windows and Linux, a new window is created for each call to `ds9show`.

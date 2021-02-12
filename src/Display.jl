@@ -20,8 +20,18 @@ so that they have equal axes. By default (pad=nothing),
 padding will be applied when all images are 2D and
 locked.
 """
-function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=nothing, τ=nothing, regions=String[])
-
+function ds9show(
+    # Accept any number of images
+    imgs...;
+    # Flags
+    lock=true,
+    pad=nothing,
+    setscale=nothing,
+    setcmap=nothing,
+    loadcmap=nothing,
+    τ=nothing,
+    regions=String[]
+)
     # See this link for DS9 Command reference
     # http://ds9.si.edu/doc/ref/command.html#fits
 
@@ -77,7 +87,9 @@ function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=noth
         cmd =  `$cmd -scale mode $setscale`
     end
 
-    if !isnothing(setcmap) 
+    if !isnothing(loadcmap) 
+        cmd =  `$cmd -cmap load $loadcmap`
+    elseif !isnothing(setcmap) 
         cmd =  `$cmd -cmap $setcmap`
     end
 
