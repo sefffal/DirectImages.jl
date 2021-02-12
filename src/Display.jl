@@ -29,9 +29,9 @@ function ds9show(
     setscale=nothing,
     setcmap=nothing,
     loadcmap=nothing,
-    τ=nothing
+    τ=nothing,
+    regions=String[]
 )
-
     # See this link for DS9 Command reference
     # http://ds9.si.edu/doc/ref/command.html#fits
 
@@ -49,6 +49,17 @@ function ds9show(
         # Sort of an ungly line. paddedviews returns a tuple of views.
         # We need to convert to a vector of arrays.
         imgs = [collect.(Images.paddedviews(NaN, imgs...))...]
+    end
+
+    # Detect images with complex values, and just show the power
+    imgs = map(imgs) do img
+        if eltype(img) <: Complex
+            return abs.(img)
+        end
+        if eltype(img) <: Bool
+            return Int8.(img)
+        end
+        return img
     end
 
     # For each image, write a temporary file.
@@ -92,6 +103,10 @@ function ds9show(
     # If lock=true, then add almost all possible lock flags to the command
     if lock
         cmd = `$cmd -lock frame image -lock crosshair image -lock crop image -lock slice image -lock bin yes -lock axes yes -lock scale yes -lock scalelimits yes -lock colorbar yes -lock block yes -lock smooth yes `
+    end
+
+    for region in regions
+        cmd = `$cmd -regions command "$region"`
     end
 
     # Open DS9 asyncronously.
