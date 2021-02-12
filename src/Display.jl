@@ -164,25 +164,15 @@ using RecipesBase
     end
 
     seriestype := :heatmap
-    seriescolor --> :magma
     xguide --> "X - $unit"
     yguide --> "Y - $unit"
-    fontfamily --> "Times"
-    minorticks --> true
     label --> ""
     # grid --> false
-    foreground_color_grid --> "#000"
-    gridalpha --> 0.1
-    gridlinewidth --> 1
-    framestyle --> :box
     # legend --> false
     # background_color_outside --> "#000000"
     # background_color_inside --> "#000000"
     # foreground_color --> "#eee"
     aspect_ratio --> 1
-    right_margin --> 10Measures.mm
-    left_margin --> 10Measures.mm
-    titlelocation --> :left
     clims --> clims
     colorbar_title --> colorbar_title
 
