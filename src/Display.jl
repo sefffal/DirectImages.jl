@@ -20,7 +20,7 @@ so that they have equal axes. By default (pad=nothing),
 padding will be applied when all images are 2D and
 locked.
 """
-function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=nothing, τ=nothing)
+function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=nothing, τ=nothing, regions=String[])
 
     # See this link for DS9 Command reference
     # http://ds9.si.edu/doc/ref/command.html#fits
@@ -39,6 +39,17 @@ function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=noth
         # Sort of an ungly line. paddedviews returns a tuple of views.
         # We need to convert to a vector of arrays.
         imgs = [collect.(Images.paddedviews(NaN, imgs...))...]
+    end
+
+    # Detect images with complex values, and just show the power
+    imgs = map(imgs) do img
+        if eltype(img) <: Complex
+            return abs.(img)
+        end
+        if eltype(img) <: Bool
+            return Int8.(img)
+        end
+        return img
     end
 
     # For each image, write a temporary file.
@@ -80,6 +91,10 @@ function ds9show(imgs...; lock=true, pad=nothing, setscale=nothing, setcmap=noth
     # If lock=true, then add almost all possible lock flags to the command
     if lock
         cmd = `$cmd -lock frame image -lock crosshair image -lock crop image -lock slice image -lock bin yes -lock axes yes -lock scale yes -lock scalelimits yes -lock colorbar yes -lock block yes -lock smooth yes `
+    end
+
+    for region in regions
+        cmd = `$cmd -regions command "$region"`
     end
 
     # Open DS9 asyncronously.
