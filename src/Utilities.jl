@@ -73,3 +73,23 @@ function lookup_coord(image::AbstractArray, vec, platescale)
     return tot
 end
 export lookup_coord
+
+
+using Statistics
+
+"""
+    imgsep(img)
+
+Given an array, return the distance of each pixel
+to the centre.
+"""
+function imgsep(
+    img,
+    centrex=mean(axes(img,1)),
+    centrey=mean(axes(img,2)),
+)
+    xs = axes(img,1) .- centrex
+    ys = axes(img,2) .- centrey
+    r = sqrt.(xs.^2 .+ ys'.^2)
+    return r
+end
