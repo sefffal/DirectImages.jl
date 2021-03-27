@@ -57,7 +57,33 @@ function contrast_interp(image; step=2)
 end
 export contrast_interp
 
-function profile(image)
+function profile(image; step=2)
+    I = origin(image)
+    if I[1] == I[2] == 1
+        image = centered(image)
+    end
+    dx = UnitRange(axes(image,1)) 
+    dy = UnitRange(axes(image,2)) 
+    dr = sqrt.(
+        dx.^2 .+ (dy').^2
+    )
+
+    c_img = collect(image)
+    
+    bins = 0:step:maximum(dr)
+    # bins = 30:step:100
+    profile = zeros(size(bins))
+    mask = falses(size(image))
+    mask2 = isfinite.(c_img)
+    for i in eachindex(bins)
+        bin = bins[i]
+        mask .= (bin.-step/2) .< dr .< (bin.+step/2) 
+        mask .&= mask2
+        c = mean(view(c_img, mask))
+        profile[i] = c
+    end
+
+    return (;separation=bins, profile)
 end
 
 
