@@ -10,7 +10,7 @@ function stack(
     # If lock is true (deafult) and the images have different sizes (and are 2D), and
     # padding has not been disabled, turn padding on.
     if length(images) > 1 && isnothing(pad)  && all(==(2), length.(size.(images))) && !all(Ref(size.(images)) .== size(first(images)))
-        @warn "Padding images so that locked axes work correctly. Disable with either `pad=false` or `lock=false`"
+        @warn "Padding images to a common size"
         pad = true
     else
         pad = false
