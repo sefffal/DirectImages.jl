@@ -37,7 +37,7 @@ function ds9show(
 
     # If lock is true (deafult) and the images have different sizes (and are 2D), and
     # padding has not been disabled, turn padding on.
-    if length(imgs) > 1 && isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(Ref(size.(imgs)) .== size(first(imgs)))
+    if length(imgs) > 1 && isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(i -> size(i) == size(first(imgs)), imgs)
         @warn "Padding images so that locked axes work correctly. Disable with either `pad=false` or `lock=false`"
         pad = true
     else
@@ -162,7 +162,10 @@ using RecipesBase
 
     unit = "px"
     platescale = 1.0
-    if hasproperty(img, :PIXSCALE)
+    if hasproperty(img, :PLATESCALE)
+        platescale = img.PLATESCALE
+        unit = "mas"
+    elseif hasproperty(img, :PIXSCALE)
         platescale = img.PIXSCALE*3.6e6
         unit = "mas"
     elseif hasproperty(img, :PLATESC)
