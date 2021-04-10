@@ -227,6 +227,9 @@ function imshow end
 function imshow(img; τ=5, lims=nothing, kwargs... )
     error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
 end
+function imshow!(img; τ=5, lims=nothing, kwargs... )
+    error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
+end
 
 # Optionally depend on Plots. If the user imports it, this code will be run to set up
 # our `imshow` function.
@@ -242,8 +245,17 @@ function __init__()
         function imshow(img; τ=5, lims=nothing, kwargs...)
             Plots.plot(DirectImage(img); τ, lims, kwargs...)
         end
+        function imshow!(img::DirectImage; τ=5, lims=nothing, kwargs...)
+            Plots.plot!(img; τ, lims, kwargs...)
+        end    
+        function imshow!(img; τ=5, lims=nothing, kwargs...)
+            Plots.plot!(DirectImage(img); τ, lims, kwargs...)
+        end
+        
     end
 
+    nothing
 end
 export imshow
+export imshow!
 
