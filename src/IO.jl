@@ -91,7 +91,7 @@ end
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, images::AbstractArray{<:DirectImage})
+function writefits(fname, images::AbstractVector{<:DirectImage})
     return FITS(fname, "w") do file
         try
             for img in images
