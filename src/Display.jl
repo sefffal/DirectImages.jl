@@ -37,7 +37,7 @@ function ds9show(
 
     # If lock is true (deafult) and the images have different sizes (and are 2D), and
     # padding has not been disabled, turn padding on.
-    if length(imgs) > 1 && isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(Ref(size.(imgs)) .== size(first(imgs)))
+    if length(imgs) > 1 && isnothing(pad) && lock && all(==(2), length.(size.(imgs))) && !all(i -> size(i) == size(first(imgs)), imgs)
         @warn "Padding images so that locked axes work correctly. Disable with either `pad=false` or `lock=false`"
         pad = true
     else
@@ -162,7 +162,10 @@ using RecipesBase
 
     unit = "px"
     platescale = 1.0
-    if hasproperty(img, :PIXSCALE)
+    if hasproperty(img, :PLATESCALE)
+        platescale = img.PLATESCALE
+        unit = "mas"
+    elseif hasproperty(img, :PIXSCALE)
         platescale = img.PIXSCALE*3.6e6
         unit = "mas"
     elseif hasproperty(img, :PLATESC)
@@ -224,6 +227,9 @@ function imshow end
 function imshow(img; τ=5, lims=nothing, kwargs... )
     error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
 end
+function imshow!(img; τ=5, lims=nothing, kwargs... )
+    error("The Plots package is not active. Run `using Plots` before `using DirectImages` to enable.")
+end
 
 # Optionally depend on Plots. If the user imports it, this code will be run to set up
 # our `imshow` function.
@@ -239,8 +245,17 @@ function __init__()
         function imshow(img; τ=5, lims=nothing, kwargs...)
             Plots.plot(DirectImage(img); τ, lims, kwargs...)
         end
+        function imshow!(img::DirectImage; τ=5, lims=nothing, kwargs...)
+            Plots.plot!(img; τ, lims, kwargs...)
+        end    
+        function imshow!(img; τ=5, lims=nothing, kwargs...)
+            Plots.plot!(DirectImage(img); τ, lims, kwargs...)
+        end
+        
     end
 
+    nothing
 end
 export imshow
+export imshow!
 
