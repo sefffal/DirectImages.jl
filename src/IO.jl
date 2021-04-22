@@ -87,10 +87,53 @@ function writefits(fname, images::DirectImage...)
         end
     end
 end
+
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, images::AbstractArray...)
+function writefits(fname, images::AbstractArray{<:DirectImage})
+    return FITS(fname, "w") do file
+        try
+            for img in images
+                props = propertynames(img)
+                headers = FITSHeader(
+                    [String(prop) for prop in props],
+                    Any[img[prop] for prop in props],
+                    String[img[prop,/] for prop in props],
+                )
+                write(file, collect(arraydata(img)), header=headers)
+            end
+        catch exp
+            println(stderr,exp)
+            Base.show_backtrace(stderr)
+            rethrow(exp)
+        end
+    end
+end
+
+"""
+Write an array to a FITS file. Works for any array. Does not add headers
+"""
+function writefits(fname, images::AbstractMatrix...)
+    return FITS(fname, "w") do fits
+        try
+            for img in images
+                write(fits, collect(img))
+            end
+        catch exp
+            println(stderr,exp)
+            Base.show_backtrace(stderr)
+            rethrow(exp)
+        end
+    end
+end
+export writefits
+
+
+"""
+Write an array to a FITS file. Works for any array. Does not add headers
+"""
+function writefits(fname, images::AbstractVector{<:AbstractMatrix})
     return FITS(fname, "w") do fits
         try
             for img in images
