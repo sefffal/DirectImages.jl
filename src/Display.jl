@@ -148,14 +148,14 @@ function imshow2(
         min, max = clims
         c .-= min
         c ./= max - min
-        Gray.(c')
+        Gray.(c[:,end:-1:begin]')
     else
         if any(!isfinite, c)
             c = collect(c)
             c[.! isfinite.(c)] .= 0
         end
         cscheme = ColorSchemes.colorschemes[cmap]
-        get(cscheme::ColorScheme, c', clims)
+        get(cscheme::ColorScheme, c[:,end:-1:begin]', clims)
     end
 
 end
