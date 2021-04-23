@@ -133,18 +133,27 @@ ds9show(imgs::AbstractArray{<:AbstractArray}; kwargs...) = ds9show(imgs...;kwarg
 export ds9show
 
 
-using ImageShow, Images
+using ImageShow, Images, ColorSchemes
 
 function imshow2(
     img;
     clims=extrema(skipmissing(filter(isfinite, img))),
-    τ=nothing
+    τ=nothing,
+    cmap=:Grey
 )
-    c = copy(img)
-    min, max = clims
-    c .-= min
-    c ./= max - min
-    Gray.(c)
+
+    # Fast path: pure grayscale image
+    if cmap == :Grey
+        c = copy(img)
+        min, max = clims
+        c .-= min
+        c ./= max - min
+        Gray.(c)
+    else
+        cscheme = ColorSchemes.colorschemes[cmap]
+        get(cscheme::ColorScheme, img, clims)
+    end
+
 end
 export imshow2
 
