@@ -114,7 +114,7 @@ end
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, images::AbstractMatrix...)
+function writefits(fname, images::AbstractArray{<:Number}...)
     return FITS(fname, "w") do fits
         try
             for img in images
@@ -133,7 +133,7 @@ export writefits
 """
 Write an array to a FITS file. Works for any array. Does not add headers
 """
-function writefits(fname, images::AbstractVector{<:AbstractMatrix})
+function writefits(fname, images::AbstractVector{<:AbstractArray})
     return FITS(fname, "w") do fits
         try
             for img in images
