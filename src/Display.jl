@@ -133,6 +133,22 @@ ds9show(imgs::AbstractArray{<:AbstractArray}; kwargs...) = ds9show(imgs...;kwarg
 export ds9show
 
 
+using ImageShow, Images
+
+function imshow2(
+    img;
+    clims=extrema(skipmissing(filter(isfinite, img))),
+    τ=nothing
+)
+    c = copy(img)
+    min, max = clims
+    c .-= min
+    c ./= max - min
+    Gray.(c)
+end
+export imshow2
+
+
 # This is a Plots recipe for how to display our image type.
 # If the user runs `using Plots; plot(img)` this will be called.
 using RecipesBase
