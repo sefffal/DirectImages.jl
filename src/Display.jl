@@ -141,10 +141,10 @@ function imshow2(
     τ=nothing,
     cmap=:Grey
 )
-
+    c = convert(Array{Float32}, img)
     # Fast path: pure grayscale image
     if cmap == :Grey
-        c = copy(img)
+        c = copy(c)
         min, max = clims
         c .-= min
         c ./= max - min
