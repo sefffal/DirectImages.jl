@@ -141,21 +141,36 @@ function imshow2(
     τ=nothing,
     cmap=:Grey
 )
-    c = convert(Array{Float32}, img)
+    # c = convert(Array{Float32}, img)
+    c =  img
     # Fast path: pure grayscale image
     if cmap == :Grey
         c = copy(c)
         min, max = clims
         c .-= min
         c ./= max - min
-        Gray.(c[:,end:-1:begin]')
-    else
         if any(!isfinite, c)
-            c = collect(c)
-            c[.! isfinite.(c)] .= 0
+            c = collect(view(c, :,reverse(axes(c,2)))')
+            mask = .! isfinite.(c)
+            c[mask] .= 0
+            coloured = RGBA.(Gray.(c))
+            coloured[mask] .= RGBA(0,0,0,0)
+            coloured
+        else
+            Gray.(c[:,end:-1:begin]')
         end
+    else
         cscheme = ColorSchemes.colorschemes[cmap]
-        get(cscheme::ColorScheme, c[:,end:-1:begin]', clims)
+        if any(!isfinite, c)
+            c = collect(view(c, :,reverse(axes(c,2)))')
+            mask = .! isfinite.(c)
+            c[mask] .= 0
+            coloured = RGBA.(get(cscheme::ColorScheme, c, clims))
+            coloured[mask] .= RGBA(0,0,0,0)
+            coloured
+        else
+            get(cscheme::ColorScheme, c[:,end:-1:begin]', clims)
+        end
     end
 
 end
