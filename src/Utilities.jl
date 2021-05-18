@@ -46,6 +46,10 @@ Given an image, a coordinate vector in milliarcseconds, and the platescale
 in milliarcseconds, return the pixel at that coordinate using bilinear interpolation.
 """
 ## Function for looking up a single pixel in an image, with bi-linear interpolation
+function lookup_coord(image::AbstractArray, x,y, platescale)
+    return lookup_coord(image, (x,y), platescale)
+end
+
 function lookup_coord(image::AbstractArray, vec, platescale)
     ix = vec[1] / platescale
     iy = vec[2] / platescale
