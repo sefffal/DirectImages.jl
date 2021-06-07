@@ -55,7 +55,7 @@ After calling the `prep` function, you can alter
 `image` with new data and calling `contrast!`
 will still be very fast and non-allocating.
 """
-function contrast!_prep(image,bins)
+function contrast!_prep(image,bins,spatialmask=trues(size(image)))
     cont = zeros(size(bins))
     # masks = falses(length(bins),size(image,1),size(image,2))
     # masks = BitMatrix[]
@@ -73,6 +73,7 @@ function contrast!_prep(image,bins)
     for i in eachindex(bins)
         bin = bins[i]
         masks[i] .= (bin.-s) .< dr .< (bin.+s) 
+        masks[i] .&= spatialmask[i]
         # push!(masks,(bin.-s) .< dr .< (bin.+s) )
     end
     views = [view(image, mask) for mask in masks]
