@@ -42,7 +42,51 @@ function contrast(image; step=2)
 
     return (;separation=bins, contrast)
 end
+
+"""
+    out,prep = contrast!_prep(image, bins)
+    contrast!(out,prep)
+
+A fast non-allocating routine for calculating
+contrast. Calculates the 1σ contrast of image
+moving outwards from the centre accoring to `bins`.
+
+After calling the `prep` function, you can alter
+`image` with new data and calling `contrast!`
+will still be very fast and non-allocating.
+"""
+function contrast!_prep(image,bins)
+    cont = zeros(size(bins))
+    # masks = falses(length(bins),size(image,1),size(image,2))
+    # masks = BitMatrix[]
+    # We want matrices of bool, not bitmatrix for non-allocating masking view performance
+    masks = [
+        fill(false, size(image))
+        for _ in bins
+    ]
+    dx = axes(image,1) .- mean(axes(image,1))
+    dy = axes(image,2) .- mean(axes(image,2))
+    dr = sqrt.(
+        dx.^2 .+ (dy').^2
+    )
+    s = step(bins)/2
+    for i in eachindex(bins)
+        bin = bins[i]
+        masks[i] .= (bin.-s) .< dr .< (bin.+s) 
+        # push!(masks,(bin.-s) .< dr .< (bin.+s) )
+    end
+    views = [view(image, mask) for mask in masks]
+    return cont, views
+end
+function contrast!(out,views)
+    for (i,v) in pairs(views)
+        out[i] = std(v)
+    end
+end
+
 export contrast
+export contrast!_prep
+export contrast!
 
 
 """
