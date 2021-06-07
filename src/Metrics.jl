@@ -73,7 +73,7 @@ function contrast!_prep(image,bins,spatialmask=trues(size(image)))
     for i in eachindex(bins)
         bin = bins[i]
         masks[i] .= (bin.-s) .< dr .< (bin.+s) 
-        masks[i] .&= spatialmask[i]
+        masks[i] .&= spatialmask
         # push!(masks,(bin.-s) .< dr .< (bin.+s) )
     end
     views = [view(image, mask) for mask in masks]
