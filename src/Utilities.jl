@@ -98,3 +98,21 @@ function imgsep(
     return r
 end
 export imgsep
+
+"""
+    fakeimage((100,100), [1.2])
+
+Given desired image dimensions and gaussian blur level, create
+a random image with a noise distribution a bit like a real direct
+image.
+"""
+function fakeimage(dims,gaus_size=1.2)
+    image = zeros(dims)
+    cont, views = contrast!_prep(image,1:2:ceil(Int,maximum(size(image))*√2))
+    for (i,v) in pairs(views)
+        v .=1/ i^2*randn(length(v))
+    end
+    blurred = imfilter(image, Kernel.gaussian(gaus_size),NA())
+    return blurred
+end
+export fakeimage
