@@ -6,11 +6,27 @@ This is an index position (not rounded).
 """
 function centre_of_gravity(img)
     tot = sum(img)
-    cog_x = sum(axes(img,1).*reshape(sum(img,dims=2),:))/tot
-    cog_y = sum(axes(img,2).*reshape(sum(img,dims=1),:))/tot
+    cog_x = zero(eltype(img))
+    for i in axes(img,1)
+        cog_xi = zero(eltype(img))
+        for j in axes(img,2)
+            cog_xi += img[i,j]
+        end
+        cog_x += cog_xi * i
+    end
+    cog_x/=tot
+    cog_y = zero(eltype(img))
+    for i in axes(img,2)
+        cog_yi = zero(eltype(img))
+        for j in axes(img,1)
+            cog_yi += img[j,i]
+        end
+        cog_y += cog_yi * i
+    end
+    cog_y/=tot 
     return (cog_x, cog_y)
 end
-export centre_of_gravity
+export centre_of_gravity2
 
 
 """
