@@ -26,7 +26,7 @@ function centre_of_gravity(img)
     cog_y/=tot 
     return (cog_x, cog_y)
 end
-export centre_of_gravity2
+export centre_of_gravity
 
 
 """
