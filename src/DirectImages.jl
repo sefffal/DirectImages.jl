@@ -25,7 +25,6 @@ A package of useful functions for interacting with FITS files.
 module DirectImages
 
 include("Type.jl")
-include("Time.jl")
 include("Metrics.jl")
 include("IO.jl")
 include("Display.jl")
