@@ -8,7 +8,18 @@ convenient tools for loading and manipulating astronomical images and datacubes.
 The main data type is a fork of Tim Holy's ImageMetadata adapted to work with the FITS format
 common in astronomy. 
 
-# Features
+## Installation
+This package is not in the General registery, but a personal registry for this and related packages.
+You can add it as follows:
+
+(`]` to enter Pkg mode)
+```julia
+ pkg> registry add https://github.com/sefffal/DirectRegistry
+ pkg> add DirectImages
+```
+
+
+## Features
  - easily reading and writing FITS images/cubes/etc
  - easily access and set FITS headers and comments
  - keep track of physical coordinates using OffsetArrays behind the scenes
@@ -16,14 +27,12 @@ common in astronomy.
  - send data to SAO DS9 for viewing and manipulation
  - display data using Plots with reasonable scale limits based +/- standard deviations
  - Plots.jl recipe
-
-# Roadmap
+ - contrast measurements for High Contrast Imaging
+## Roadmap
 
  - image registration
  - photometry
- - basic tools for showing spectra
  - other image quality metrics, including estimating Strehl
- - contrast measurements for High Contrast Imaging
 
 
 ## Example
@@ -48,16 +57,35 @@ end
 # Use offset indices to keep track of image positions
 img[-10,10] == 1.2
 
-
+writefits("out.fits", img)
 ```
 
+## Measuring contrast
+Measure the one-sigma contrast:
+```julia
+cont = contrast(centered(img))
+```
+
+As a linear interpolation function 
+```julia
+cont_itp = contrast_interp(centered(img))
+```
 
 ## Showing Images
 ```julia
 using Plots
 plot(image) # Works if you have a DirectImage
 imshow(image) # Works with any abstract array
+title!("my image")
 ```
+
+Or without using Plots:
+```julia
+imshow2(image)
+imshow2(image, cmap=:magma)
+imshow2(image, cmap=:magma, clims=(0,10))
+```
+This will display as a PNG which is less flexible than a Plots heatmap, but much quicker.
 
 By default, `imshow` applies τ=7 (you can override with `nothing`) and `plot` uses
 the full colorscale.
