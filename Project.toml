@@ -1,7 +1,7 @@
 name = "DirectImages"
 uuid = "d0ffc639-4e6f-47d5-8eab-0368fa958583"
 authors = ["Will Thompson <will.thompson@outlook.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
