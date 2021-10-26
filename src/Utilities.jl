@@ -72,6 +72,14 @@ function lookup_coord(image::AbstractArray, vec, platescale)
     axx = axes(image, 1)
     axy = axes(image, 2)
 
+    # floor & ceil can actually fail with an InexactError if ix or iy fall outside
+    # the range representable by Int64. In these absurd cases, we can safely 
+    # return 0 as the position is necessarily outside the range of indices possible
+    # to store in an array on this system.
+    if !(typemin(Int) < ix < typemax(Int)) || !(typemin(Int) < iy < typemax(Int))
+        return 0
+    end
+
     ix1 = floor(Int, ix)
     ix2 = ceil(Int, ix)
     iy1 = floor(Int, iy)
