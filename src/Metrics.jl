@@ -43,6 +43,36 @@ function contrast(image; step=2)
     return (;separation=bins, contrast)
 end
 
+
+
+function radialbins(image; step=2)
+    I = origin(image)
+    if I[1] == I[2] == 1
+        image = centered(image)
+    end
+    dx = UnitRange(axes(image,1)) 
+    dy = UnitRange(axes(image,2)) 
+    dr = sqrt.(
+        dx.^2 .+ (dy').^2
+    )
+
+    c_img = collect(image)
+    
+    bins = 0:step:maximum(dr)
+    # bins = 30:step:100
+    contrast = zeros(size(bins))
+    mask = falses(size(image))
+    mask2 = isfinite.(c_img)
+    radial_bins = map(eachindex(bins)) do i
+        bin = bins[i]
+        mask .= (bin.-step/2) .< dr .< (bin.+step/2) 
+        mask .&= mask2
+        return view(c_img, mask)
+    end
+
+    return (;separation=bins, data=radial_bins)
+end
+
 """
     out,prep = contrast!_prep(image, bins)
     contrast!(out,prep)
@@ -100,7 +130,41 @@ function contrast_interp(image; step=2)
     cont = contrast(image; step)
     return LinearInterpolation(cont.separation, cont.contrast, extrapolation_bc=Inf)
 end
+
+using Distributions
+
+"""
+    contrast_dist_interp(::Type{Distribution}, image; step=2)
+
+Returns a linear interpolation on top of the results from `contrast`.
+Extrapolated results return Inf.
+"""
+function contrast_dist_interp(Dist::Type{<:UnivariateDistribution}, image; step=2)
+    sep, bins = radialbins(image; step)
+    has_px = map(!isempty, bins)
+    sep = sep[has_px]
+    bins = bins[has_px]
+    dists = map(bins) do bin
+        fit(Dist, bin)
+    end
+    params = Distributions.params.(dists)
+    param_arrs = [zeros(eltype(first(dists)), length(params)) for _ in 1:length(first(params))]
+    for j in eachindex(param_arrs)
+        for (i,param) in enumerate(params)
+            param_arrs[j][i] = params[i][j]
+        end
+    end
+    param_interps = Tuple(map(param_arrs) do parr
+        LinearInterpolation(sep, parr, extrapolation_bc=Inf)
+    end)
+    return function (sep_px)
+        params = map(f->f(sep_px), param_interps)
+        dist = Dist(params...)
+    end
+end
+
 export contrast_interp
+export contrast_dist_interp
 
 function profile(image; step=2)
     I = origin(image)
